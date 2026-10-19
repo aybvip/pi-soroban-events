@@ -8,6 +8,7 @@
     "pi-soroban-events": "./events-walk.mjs"
   },
   "scripts": {
+    "test": "node --test test.mjs",
     "walk": "node events-walk.mjs"
   },
   "keywords": ["pi", "soroban", "events", "explorer", "coverage", "read-only"],
