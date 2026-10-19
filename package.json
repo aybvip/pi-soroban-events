@@ -1,0 +1,18 @@
+{
+  "name": "pi-soroban-events",
+  "version": "0.1.0",
+  "description": "Read-only Soroban event walker for Pi Network with measured coverage reporting. Walks getEvents in explicit windows to defeat silent truncation.",
+  "type": "module",
+  "main": "events-walk.mjs",
+  "bin": {
+    "pi-soroban-events": "./events-walk.mjs"
+  },
+  "scripts": {
+    "walk": "node events-walk.mjs"
+  },
+  "keywords": ["pi", "soroban", "events", "explorer", "coverage", "read-only"],
+  "license": "MIT",
+  "engines": {
+    "node": ">=18"
+  }
+}
