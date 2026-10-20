@@ -127,6 +127,18 @@ needed**:
 - `--rpc` overrides the endpoint without a mainnet refusal
 - `--dry-run` reaches 100% coverage for every range shape
 
+
+## Documentation
+
+| Document | What it covers |
+|---|---|
+| [`docs/INDEX.md`](docs/INDEX.md) | everything, in reading order, with the claim status of each figure |
+| [`docs/BOUNDARIES.md`](docs/BOUNDARIES.md) | every non-claim, in full |
+| [`docs/DECISIONS.md`](docs/DECISIONS.md) | the design choices and the measurement behind each |
+| [`docs/SOURCES.md`](docs/SOURCES.md) | the endpoint, the date, and how to re-measure |
+| [`docs/VERIFICATION.md`](docs/VERIFICATION.md) | how to reproduce the tests and the live run |
+| [`llms.txt`](llms.txt) | a compact summary for machine readers |
+
 ## See also
 
 - `pi-nft-provenance` — read a transaction, its ledger, operations and effects

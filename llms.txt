@@ -1,0 +1,66 @@
+# Pi Soroban Events Explorer — llms.txt
+# A read-only, zero-dependency walker over Soroban events on Pi Network that
+# reports per-window truncation and treats a truncated count as a lower bound.
+
+> The usual story — "getEvents caps at ~10 000 ledgers and returns an empty
+> array" — did not reproduce. Measured 2026-10-19 against the testnet RPC, a
+> 100 000-ledger span succeeded. The real footguns are different.
+
+## What it is
+- read-only, zero-dependency, Node (ESM), Node >= 18
+- events-walk.mjs: the CLI (--from --to --step --network --rpc --dry-run)
+- windows.mjs: pure window/retention arithmetic (no network, importable)
+- test.mjs: 34 offline checks (node --test)
+- never builds, signs or submits; never writes; no API keys
+
+## The three measured footguns
+1. endLedger is EXCLUSIVE. [L, L] returns zero events; [L, L+1] returns ledger L's
+   events. A single-ledger query silently finds nothing. The tool always sends
+   end + 1.
+2. At most 100 events per response, and limit is IGNORED. limit=1, 5, 50, 99,
+   100 and 101 all returned 100.
+3. The returned cursor is NOT honoured. { cursor } alone fails with
+   "startLedger must be positive"; { cursor, startLedger, endLedger } ignores the
+   cursor and repeats page 1. A window with 100 events therefore cannot be
+   completed.
+
+## Why it exists
+An empty result is ambiguous: "no events", "wrong ledger boundary", or "page full
+and no way to continue". The tool removes the ambiguity by walking explicit
+windows and reporting, per window, whether it was truncated.
+
+## The one thing to remember
+When any window returns 100 events the cursor cannot continue, so events_found is
+a LOWER BOUND and is printed as such. Ledger coverage can still be complete
+(100%) while the event count is not a total.
+
+## Measured constraints (2026-10-19, protocol 28)
+- ledger-span cap:        none found (a 100 000-ledger span succeeded)
+- events per response:    100 (limit ignored)
+- cursor paging:          not honoured
+- endLedger:              exclusive
+- filters[].type:         "system" or "contract" only; tx-hash filtering rejected
+- startLedger below retention: -32600 error (not an empty array)
+- retention:              120 960 ledgers (7 days at 5 s); getHealth reports it
+- getLedger / getContractData: method not found
+- Mainnet Soroban RPC:    HTTP 503, certificate expired 2023-05-30
+
+## Output shape
+Per window: [from .. to] span= events= TRUNCATED (or not). Then a # Coverage
+block: ledgers_requested, ledgers_covered (%), windows_walked, windows_truncated,
+windows_errored, events_found (LOWER BOUND when truncated).
+
+## Usage
+- node events-walk.mjs --from 27249000 --to 27252000
+- node events-walk.mjs --from 27249000 --to 27252000 --dry-run   (no network)
+- node events-walk.mjs --from 1000 --to 2000 --rpc https://example.invalid
+- node --test test.mjs
+Exit codes: 0 ok; 1 error; 2 refused (e.g. --network mainnet without --rpc).
+
+## Not claimed
+- that "no events found" means no events exist (a window may be mis-bounded)
+- that events_found is a total (it is a lower bound when truncated)
+- that the 100-event cap is a protocol constant (it is an observed RPC behaviour,
+  re-measured on every run)
+- that event contents are interpreted correctly (this tool counts and reports)
+- that Pi Network has adopted, reviewed or endorsed this
